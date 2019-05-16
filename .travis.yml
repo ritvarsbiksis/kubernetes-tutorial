@@ -1,0 +1,21 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t ritbiksis/react-test -f ./client/dev.Dockerfile ./client
+
+script:
+  - docker run ritbiksis/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t ritbiksis/multi-client ./client
+  - docker build -t ritbiksis/multi-nginx ./nginx
+  - docker build -t ritbiksis/multi-server ./server
+  - docker build -t ritbiksis/multi-worker ./worker
+  # Log in to the docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push ritbiksis/multi-client
+  - docker push ritbiksis/multi-nginx
+  - docker push ritbiksis/multi-server
+  - docker push ritbiksis/multi-worker
